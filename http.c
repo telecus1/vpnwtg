@@ -1057,6 +1057,8 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 			if (rq_retry) {
 				/* Retry if we failed to send the request on
 				   an already-open connection */
+				vpn_progress(vpninfo, PRG_ERR,
+				             _("Failed to send request (err=%d %s), will retry with new connection\n"), result, strerror(result));
 				openconnect_close_https(vpninfo, 0);
 				goto retry;
 			}
@@ -1067,6 +1069,14 @@ int do_https_request(struct openconnect_info *vpninfo, const char *method,
 
 	result = process_http_response(vpninfo, 0, http_auth_hdrs, buf);
 	if (result < 0) {
+		if (rq_retry /* && result == -EIO */) {
+			/* Retry if we got an unexpected zero-size response without timeout on
+			   an already-open connection */
+			vpn_progress(vpninfo, PRG_ERR,
+			             _("Received empty response (err=%d %s), will retry with new connection\n"), result, strerror(result));
+			openconnect_close_https(vpninfo, 0);
+			goto retry;
+		}
 		goto out;
 	}
 	if (vpninfo->dump_http_traffic && buf->pos)
