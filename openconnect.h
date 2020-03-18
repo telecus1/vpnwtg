@@ -33,9 +33,12 @@ extern "C" {
 #endif
 
 #define OPENCONNECT_API_VERSION_MAJOR 5
-#define OPENCONNECT_API_VERSION_MINOR 5
+#define OPENCONNECT_API_VERSION_MINOR 6
 
 /*
+ * API version 5.6:
+ * - add openconnect_set_webview_callback()
+ *
  * API version 5.5 (v8.00; 2019-01-05):
  *  - add openconnect_set_version_string()
  *  - add openconnect_set_key_password()
@@ -637,6 +640,13 @@ struct openconnect_info *openconnect_vpninfo_new(const char *useragent,
 						 openconnect_progress_vfn,
 						 void *privdata);
 void openconnect_vpninfo_free(struct openconnect_info *vpninfo);
+
+/* XX: Args not complete */
+typedef int (*openconnect_open_webview_vfn) (void *privdata,
+					     const char *start_uri);
+
+void openconnect_set_webview_callback(struct openconnect_info *vpninfo,
+				      openconnect_open_webview_vfn);
 
 /* Callback to allow binding a newly created socket's file descriptor to
    a specific interface, e.g. with SO_BINDTODEVICE. This tells the kernel

@@ -1228,3 +1228,9 @@ retry:
 
 	return ret;
 }
+
+void openconnect_set_webview_callback(struct openconnect_info *vpninfo,
+				      openconnect_open_webview_vfn webview_fn)
+{
+	vpninfo->open_webview = webview_fn;
+}
