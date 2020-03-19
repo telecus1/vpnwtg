@@ -916,6 +916,12 @@ int pulse_bye(struct openconnect_info *vpninfo, const char *reason);
 int pulse_eap_ttls_send(struct openconnect_info *vpninfo, const void *data, int len);
 int pulse_eap_ttls_recv(struct openconnect_info *vpninfo, void *data, int len);
 
+/* array.c */
+int array_obtain_cookie(struct openconnect_info *vpninfo);
+int array_connect(struct openconnect_info *vpninfo);
+int array_mainloop(struct openconnect_info *vpninfo, int *timeout, int readable);
+int array_bye(struct openconnect_info *vpninfo, const char *reason);
+
 /* auth-globalprotect.c */
 int gpst_obtain_cookie(struct openconnect_info *vpninfo);
 void gpst_common_headers(struct openconnect_info *vpninfo, struct oc_text_buf *buf);

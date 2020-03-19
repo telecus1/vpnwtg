@@ -185,6 +185,25 @@ static const struct vpn_proto openconnect_protos[] = {
 		.udp_send_probes = oncp_esp_send_probes,
 		.udp_catch_probe = oncp_esp_catch_probe,
 #endif
+	}, {
+		.name = "array",
+		.pretty_name = N_("Array SSL VPN"),
+		.description = N_("Compatible with Array Networks SSL VPN"),
+		.flags = OC_PROTO_PROXY,
+		.vpn_close_session = array_bye,
+		.tcp_connect = array_connect,
+		.tcp_mainloop = array_mainloop,
+		.add_http_headers = http_common_headers,
+		.obtain_cookie = array_obtain_cookie,
+		.udp_protocol = "xxx",
+#ifdef HAVE_ESPx /* No idea what this does for datagram transport yet */
+		.udp_setup = esp_setup,
+		.udp_mainloop = esp_mainloop,
+		.udp_close = esp_close,
+		.udp_shutdown = esp_shutdown,
+		.udp_send_probes = oncp_esp_send_probes,
+		.udp_catch_probe = oncp_esp_catch_probe,
+#endif
 	},
 };
 
