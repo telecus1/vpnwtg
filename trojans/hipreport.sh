@@ -52,8 +52,10 @@ DAY=$(date +'%d')
 MONTH=$(date +'%m')
 YEAR=$(date +'%Y')
 
-# This value may need to be extracted from the official HIP report, if a made-up value is not accepted.
-HOSTID="deadbeef-dead-beef-dead-beefdeadbeef"
+# This value may need to be extracted from the official HIP report, and set with --local-id=host-id=XXX,
+# if default/made-up values are not accepted.
+[[ -z "$HOST_ID" ]] && HOST_ID="deadbeef-dead-beef-dead-beefdeadbeef"
+
 # Many VPNs seem to require trailing backslash, others don't accept it
 ENCDRIVE='C:\\'
 
@@ -63,7 +65,7 @@ cat <<EOF
 	<user-name>$USER</user-name>
 	<domain>$DOMAIN</domain>
 	<host-name>$COMPUTER</host-name>
-	<host-id>$HOSTID</host-id>
+	<host-id>$HOST_ID</host-id>
 	<ip-address>$IP</ip-address>
 	<ipv6-address>$IPV6</ipv6-address>
 	<generate-time>$NOW</generate-time>
@@ -74,7 +76,7 @@ cat <<EOF
 			<os-vendor>Microsoft</os-vendor>
 			<domain>$DOMAIN.internal</domain>
 			<host-name>$COMPUTER</host-name>
-			<host-id>$HOSTID</host-id>
+			<host-id>$HOST_ID</host-id>
 			<network-interface>
 				<entry name="{DEADBEEF-DEAD-BEEF-DEAD-BEEFDEADBEEF}">
 					<description>PANGP Virtual Ethernet Adapter #2</description>
