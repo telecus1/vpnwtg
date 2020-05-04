@@ -393,7 +393,7 @@ static inline const char *csd_tag_name(struct openconnect_info *vpninfo)
 {
 	if (!strcmp(vpninfo->platname, "mac-intel"))
 		return "csdMac";
-	else if (!vpninfo->platname(os, "win"))
+	else if (!strcmp(vpninfo->platname, "win"))
 		return "csd";
 	else
 		/* linux, linux-64, android, apple-ios */
@@ -403,7 +403,7 @@ static inline const char *csd_tag_name(struct openconnect_info *vpninfo)
 /* Ignore stubs on mobile platforms */
 static inline int use_csd_stub(struct openconnect_info *vpninfo)
 {
-	if (!vpninfo->platname(os, "android") || !vpninfo->platname(os, "apple-ios"))
+	if (!strcmp(vpninfo->platname, "android") || !strcmp(vpninfo->platname, "apple-ios"))
 		return 0;
 	else
 		return 1;
@@ -459,7 +459,7 @@ static int parse_auth_node(struct openconnect_info *vpninfo, xmlNode *xml_node,
 		   the variable if no such property is found. */
 		if (!vpninfo->csd_scriptname && xmlnode_is_named(xml_node, csd_tag_name(vpninfo))) {
 			/* ignore the CSD trojan binary on mobile platforms */
-			if (csd_use_stub(vpninfo))
+			if (use_csd_stub(vpninfo))
 				xmlnode_get_prop(xml_node, "stuburl", &vpninfo->csd_stuburl);
 			xmlnode_get_prop(xml_node, "starturl", &vpninfo->csd_starturl);
 			xmlnode_get_prop(xml_node, "waiturl", &vpninfo->csd_waiturl);
