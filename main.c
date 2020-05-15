@@ -82,6 +82,9 @@ static int verbose = PRG_INFO;
 static int timestamp;
 int background;
 static int do_passphrase_from_fsid;
+#ifdef INSECURE_DEBUGGING
+static int nocertcheck;
+#endif
 static int non_inter;
 static int cookieonly;
 static int allow_stdin_read;
@@ -739,9 +742,9 @@ static void handle_signal(int sig)
 
 	switch (sig) {
 	case SIGTERM:
-	case SIGINT:
 		cmd = OC_CMD_CANCEL;
 		break;
+	case SIGINT:
 	case SIGHUP:
 		cmd = OC_CMD_DETACH;
 		break;
@@ -1436,6 +1439,12 @@ int main(int argc, char **argv)
 			openconnect_binary_version, openconnect_version_str);
 	}
 
+#ifdef INSECURE_DEBUGGING
+	fprintf(stderr,
+		_("WARNING: This build is intended only for debugging purposes and\n"
+		  "         may allow you to establish insecure connections.\n"));
+#endif
+
 	openconnect_init_ssl();
 
 	vpninfo = openconnect_vpninfo_new((char *)"Open AnyConnect VPN Agent",
@@ -1677,10 +1686,14 @@ int main(int argc, char **argv)
 			vpninfo->no_http_keepalive = 1;
 			break;
 		case OPT_NO_CERT_CHECK:
+#ifdef INSECURE_DEBUGGING
+			nocertcheck = 1;
+#else
 			fprintf(stderr,
 				_("The --no-cert-check option was insecure and has been removed.\n"
 				  "Fix your server's certificate or use --servercert to trust it.\n"));
 			exit(1);
+#endif
 			break;
 		case 's':
 			vpnc_script = dup_config_arg();
@@ -2007,11 +2020,11 @@ int main(int argc, char **argv)
 		ret = 1;
 		break;
 	case -EINTR:
-		vpn_progress(vpninfo, PRG_INFO, _("User cancelled (SIGINT/SIGTERM); exiting.\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("User cancelled (SIGTERM); exiting.\n"));
 		ret = 0;
 		break;
 	case -ECONNABORTED:
-		vpn_progress(vpninfo, PRG_INFO, _("User detached from session (SIGHUP); exiting.\n"));
+		vpn_progress(vpninfo, PRG_INFO, _("User detached from session (SIGHUP/SIGINT); exiting.\n"));
 		ret = 0;
 		break;
 	default:
@@ -2106,6 +2119,14 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 
 		return -EINVAL;
 	}
+
+#ifdef INSECURE_DEBUGGING
+	if (nocertcheck) {
+		vpn_progress(vpninfo, PRG_ERR,
+			     _("Ignoring because you built with --enable-insecure-debugging and invoked with --no-cert-check"));
+		return 0;
+	}
+#endif
 
 	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
 
