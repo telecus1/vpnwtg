@@ -691,7 +691,7 @@ PKG_CHECK_MODULES(LIBXML2, libxml-2.0)
 
 PKG_CHECK_MODULES(ZLIB, zlib, [AC_SUBST(ZLIB_PC, [zlib])],
 		  [oldLIBS="$LIBS"
-		  LIBS="$LIBS -lz" 
+		  LIBS="$LIBS -lz"
 		  AC_MSG_CHECKING([for zlib without pkg-config])
 		  AC_LINK_IFELSE([AC_LANG_PROGRAM([
 		   #include <zlib.h>],[
@@ -991,7 +991,7 @@ AC_SUBST(SYMVER_JAVA, $symver_java)
 
 AC_ARG_ENABLE([insecure-debugging],
 	AS_HELP_STRING([--enable-insecure-debugging],
-		       [Enable --no-cert-check option, and don't logout on SIGINT]),
+                      [Enable --servercert=ACCEPT option, and don't logout on SIGINT]),
 	[insecure_debugging=yes],[insecure_debugging=no])
 
 if test "$insecure_debugging" = "yes"; then

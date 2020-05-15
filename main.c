@@ -82,9 +82,6 @@ static int verbose = PRG_INFO;
 static int timestamp;
 int background;
 static int do_passphrase_from_fsid;
-#ifdef INSECURE_DEBUGGING
-static int nocertcheck;
-#endif
 static int non_inter;
 static int cookieonly;
 static int allow_stdin_read;
@@ -1685,14 +1682,10 @@ int main(int argc, char **argv)
 			vpninfo->no_http_keepalive = 1;
 			break;
 		case OPT_NO_CERT_CHECK:
-#ifdef INSECURE_DEBUGGING
-			nocertcheck = 1;
-#else
 			fprintf(stderr,
 				_("The --no-cert-check option was insecure and has been removed.\n"
 				  "Fix your server's certificate or use --servercert to trust it.\n"));
 			exit(1);
-#endif
 			break;
 		case 's':
 			vpnc_script = dup_config_arg();
@@ -2102,7 +2095,11 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 	const char *fingerprint;
 	struct accepted_cert *this;
 
+#ifdef INSECURE_DEBUGGING
+	if (server_cert && strcmp(server_cert, "ACCEPT")) {
+#else
 	if (server_cert) {
+#endif
 		int err = openconnect_check_peer_cert_hash(vpninfo, server_cert);
 
 		if (!err)
@@ -2118,14 +2115,6 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 
 		return -EINVAL;
 	}
-
-#ifdef INSECURE_DEBUGGING
-	if (nocertcheck) {
-		vpn_progress(vpninfo, PRG_ERR,
-			     _("Ignoring because you built with --enable-insecure-debugging and invoked with --no-cert-check"));
-		return 0;
-	}
-#endif
 
 	fingerprint = openconnect_get_peer_cert_hash(vpninfo);
 
@@ -2149,6 +2138,12 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 		if (non_inter)
 			return -EINVAL;
 
+#ifdef INSECURE_DEBUGGING
+		if (!strcmp(server_cert, "ACCEPT")) {
+			fprintf(stderr, _("Insecurely accepting because you ran with --servertcert=ACCEPT.\n"));
+			goto accepted;
+		}
+#endif
 		fprintf(stderr, _("Enter '%s' to accept, '%s' to abort; anything else to view: "),
 		       _("yes"), _("no"));
 
@@ -2157,7 +2152,11 @@ static int validate_peer_cert(void *_vpninfo, const char *reason)
 			return -EINVAL;
 
 		if (!strcasecmp(response, _("yes"))) {
-			struct accepted_cert *newcert = malloc(sizeof(*newcert));
+			struct accepted_cert *newcert;
+#ifdef INSECURE_DEBUGGING
+		accepted:
+#endif
+			newcert = malloc(sizeof(*newcert));
 			if (newcert) {
 				newcert->next = accepted_certs;
 				accepted_certs = newcert;
