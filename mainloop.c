@@ -208,8 +208,8 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 
 		if (!tun_is_up(vpninfo)) {
 			if (vpninfo->delay_tunnel_reason) {
-				vpn_progress(vpninfo, PRG_INFO, _("Delaying tunnel for %d ms with reason: %s\n"),
-					     timeout, vpninfo->delay_tunnel_reason);
+				vpn_progress(vpninfo, PRG_TRACE, _("Delaying tunnel with reason: %s\n"),
+					     timeout);
 				/* XX: don't let this spin forever */
 				vpninfo->delay_tunnel_reason = NULL;
 			} else {
@@ -242,10 +242,10 @@ int openconnect_mainloop(struct openconnect_info *vpninfo,
 		if (vpninfo->got_cancel_cmd) {
 			if (vpninfo->delay_close > 0) {
 				if (vpninfo->delay_close > 1) {
-					vpn_progress(vpninfo, PRG_DEBUG, _("Delaying cancel in order to send again.\n"));
+					vpn_progress(vpninfo, PRG_TRACE, _("Delaying cancel in order to send again.\n"));
 					did_work++;
 				} else
-					vpn_progress(vpninfo, PRG_DEBUG, _("Delaying cancel for %d ms in order to receive again).\n"), timeout);
+					vpn_progress(vpninfo, PRG_TRACE, _("Delaying cancel for %d ms in order to receive again).\n"), timeout);
 				/* XX: don't let this spin forever */
 				--vpninfo->delay_close;
 			} else if (vpninfo->cancel_type == OC_CMD_CANCEL) {
