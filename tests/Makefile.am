@@ -48,6 +48,11 @@ EXTRA_DIST = certs/ca.pem certs/ca-key.pem certs/user-cert.pem $(USER_KEYS) $(US
 
 dist_check_SCRIPTS = autocompletion
 
+#FIXME:
+#if HAVE_SOCAT_AND_PPPD
+dist_check_SCRIPTS += ppp-over-tls
+#endif
+
 if HAVE_NETNS
 dist_check_SCRIPTS += dtls-psk sigterm
 endif

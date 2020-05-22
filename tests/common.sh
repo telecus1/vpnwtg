@@ -25,6 +25,8 @@ if ! test -x /usr/sbin/ocserv;then
 fi
 
 OCSERV=/usr/sbin/ocserv
+PPPD=/usr/sbin/pppd
+test $(id -u) -eq 0 && SUDO= || SUDO=sudo
 
 top_builddir=${top_builddir:-..}
 SOCKDIR="./sockwrap.$$.tmp"
@@ -33,6 +35,7 @@ export SOCKET_WRAPPER_DIR=$SOCKDIR
 export SOCKET_WRAPPER_DEFAULT_IFACE=2
 ADDRESS=127.0.0.$SOCKET_WRAPPER_DEFAULT_IFACE
 OPENCONNECT="${OPENCONNECT:-${top_builddir}/openconnect}"
+LOGFILE="$SOCKDIR/log.$$.tmp"
 
 certdir="${srcdir}/certs"
 confdir="${srcdir}/configs"
@@ -59,6 +62,23 @@ launch_simple_sr_server() {
        LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 $OCSERV $* &
 }
 
+launch_simple_pppd() {
+       CERT="$1"
+       KEY="$2"
+       shift 2
+       LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 socat \
+		 PTY,rawer,b9600,link="$SOCKDIR/pppd.$$.pty" \
+		 OPENSSL-LISTEN:443,verify=0,cert="$CERT",key="$KEY" 2>&1 &
+       PID=$!
+
+       sleep 3 # Wait for socat to create the PTY link
+
+       # pppd's option parsing is notably brittle
+       $SUDO $PPPD $(readlink "$SOCKDIR/pppd.$$.pty") noauth local debug nodetach logfile "$LOGFILE" $* 2>&1 &
+
+       # XX: Caller needs to use PID, rather than $!
+}
+
 wait_server() {
 	trap "kill $1" 1 15 2
 	sleep 5
@@ -71,7 +91,7 @@ cleanup() {
 		ret=1
 	fi
 	wait
-	test -n "$SOCKDIR" && rm -rf $SOCKDIR
+	test -n "$SOCKDIR" && rm -rf $SOCKDIR && mkdir -p $SOCKDIR
 	return $ret
 }
 
