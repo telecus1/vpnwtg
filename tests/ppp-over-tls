@@ -64,7 +64,7 @@ took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPCP ConfAck " $LOGFILE && grep -qF "sent [IPCP ConfAck " $LOGFILE; then
     echo "ok (took $took seconds)"
 else
-    fail $PID "Did not negotiate IPCP and IP6CP successfully."
+    fail $PID "Did not negotiate IPCP successfully."
 fi
 
 echo -n "Connecting to PPP peer (sync/no-HDLC, IPv6 only)... "
@@ -76,7 +76,7 @@ took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPV6CP ConfAck " $LOGFILE && grep -qF "sent [IPV6CP ConfAck " $LOGFILE; then
     echo "ok (took $took seconds)"
 else
-    fail $PID "Did not negotiate IPCP and IP6CP successfully."
+    fail $PID "Did not negotiate IP6CP successfully."
 fi
 
 cleanup
