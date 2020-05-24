@@ -66,14 +66,16 @@ launch_simple_pppd() {
        CERT="$1"
        KEY="$2"
        shift 2
-       LD_PRELOAD=libsocket_wrapper.so:libuid_wrapper.so UID_WRAPPER=1 UID_WRAPPER_ROOT=1 socat \
+       LD_PRELOAD=libsocket_wrapper.so socat \
 		 PTY,rawer,b9600,link="$SOCKDIR/pppd.$$.pty" \
 		 OPENSSL-LISTEN:443,verify=0,cert="$CERT",key="$KEY" 2>&1 &
        PID=$!
 
        sleep 3 # Wait for socat to create the PTY link
 
-       # pppd's option parsing is notably brittle
+       # It would be preferable to invoke `pppd notty` directly using socat, but it seemingly cannot handle
+       # being wrapped by libsocket_wrapper.so.
+       # pppd's option parsing is notably brittle: it must have the actual PTY device node, not a symlink
        $SUDO $PPPD $(readlink "$SOCKDIR/pppd.$$.pty") noauth local debug nodetach logfile "$LOGFILE" $* 2>&1 &
 
        # XX: Caller needs to use PID, rather than $!
@@ -104,4 +106,4 @@ fail() {
 	exit 1
 }
 
-trap "fail \"Failed to launch the server, aborting test... \"" 10 
+trap "fail \"Failed to launch the server, aborting test... \"" 10

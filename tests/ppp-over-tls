@@ -27,24 +27,28 @@ KEY=$certdir/server-key.pem
 
 echo "Testing PPP ... "
 
-echo -n "Connecting to PPP peer (HDLC/RFC1662, IPv4+IPv6, DNS)... "
+echo -n "Connecting to PPP peer (HDLC/RFC1662, IPv4+IPv6, DNS, extraneous VJ and CCP)... "
 launch_simple_pppd $CERT $KEY 10.0.0.1:10.0.0.101 ms-dns 1.1.1.1 ms-dns 8.8.8.8 +ipv6 2>&1
 wait_server $PID
+start=$(date +%s)
 LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q --protocol=nullppp $ADDRESS:443 -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 --cookie "hdlc" >/dev/null 2>&1
+took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPCP ConfAck " $LOGFILE && grep -qF "sent [IPCP ConfAck " $LOGFILE && grep -qF "rcvd [IPV6CP ConfAck " $LOGFILE && grep -qF "sent [IPV6CP ConfAck " $LOGFILE; then
-    echo ok
+    echo "ok (took $took seconds)"
 else
     fail $PID "Did not negotiate IPCP and IP6CP successfully."
 fi
 
 cleanup
 
-echo -n "Connecting to PPP peer (sync/no-HDLC, IPv4+IPv6, DNS)... "
+echo -n "Connecting to PPP peer (sync/no-HDLC, IPv4+IPv6, DNS, extraneous VJ and CCP)... "
 launch_simple_pppd $CERT $KEY sync 10.0.0.1:10.0.0.101 ms-dns 1.1.1.1 ms-dns 8.8.8.8 +ipv6 2>&1
 wait_server $PID
+start=$(date +%s)
 LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q --protocol=nullppp $ADDRESS:443 -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 >/dev/null 2>&1
+took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPCP ConfAck " $LOGFILE && grep -qF "sent [IPCP ConfAck " $LOGFILE && grep -qF "rcvd [IPV6CP ConfAck " $LOGFILE && grep -qF "sent [IPV6CP ConfAck " $LOGFILE; then
-    echo ok
+    echo "ok (took $took seconds)"
 else
     fail $PID "Did not negotiate IPCP and IP6CP successfully."
 fi
@@ -52,21 +56,25 @@ fi
 cleanup
 
 echo -n "Connecting to PPP peer (sync/no-HDLC, IPv4 only)... "
-launch_simple_pppd $CERT $KEY sync 10.0.0.1:10.0.0.101 noipv6 2>&1
+launch_simple_pppd $CERT $KEY sync novj noccp 10.0.0.1:10.0.0.101 noipv6 2>&1
 wait_server $PID
+start=$(date +%s)
 LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q --protocol=nullppp $ADDRESS:443 -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 >/dev/null 2>&1
+took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPCP ConfAck " $LOGFILE && grep -qF "sent [IPCP ConfAck " $LOGFILE; then
-    echo ok
+    echo "ok (took $took seconds)"
 else
     fail $PID "Did not negotiate IPCP and IP6CP successfully."
 fi
 
 echo -n "Connecting to PPP peer (sync/no-HDLC, IPv6 only)... "
-launch_simple_pppd $CERT $KEY sync noip +ipv6 2>&1
+launch_simple_pppd $CERT $KEY sync novj noccp noip +ipv6 2>&1
 wait_server $PID
+start=$(date +%s)
 LD_PRELOAD=libsocket_wrapper.so $OPENCONNECT -q --protocol=nullppp $ADDRESS:443 -u test --servercert=d66b507ae074d03b02eafca40d35f87dd81049d3 >/dev/null 2>&1
+took=$(( $(date +%s) - start ))
 if grep -qF "rcvd [IPV6CP ConfAck " $LOGFILE && grep -qF "sent [IPV6CP ConfAck " $LOGFILE; then
-    echo ok
+    echo "ok (took $took seconds)"
 else
     fail $PID "Did not negotiate IPCP and IP6CP successfully."
 fi
